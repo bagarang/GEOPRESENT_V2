@@ -4,6 +4,23 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Sistem Absensi</title>
+
+<script>
+  // Script ini diletakkan di atas agar pengalihan terjadi secara instan sebelum halaman selesai dimuat
+  (function() {
+    // Mendeteksi apakah User-Agent mengandung kata kunci perangkat mobile
+    var isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    
+    if (isMobile) {
+      // Jika pengguna membuka lewat HP, otomatis dialihkan ke halaman Karyawan
+      window.location.href = "./SISTEM_ABSENSI/KARYAWAN/KARYAWAN.html";
+    } else {
+      // Jika pengguna membuka lewat PC/Desktop, otomatis dialihkan ke halaman Admin
+      window.location.href = "./SISTEM_ABSENSI/ADMIN/ADMIN.html";
+    }
+  })();
+</script>
+
 <style>
   *{box-sizing:border-box; margin:0; padding:0;}
   body{
@@ -26,10 +43,7 @@
   <div class="wrap">
     <h1>📍 Sistem Absensi Karyawan</h1>
     <div class="links">
-      <!-- Perbaikan path untuk Karyawan -->
       <a href="./SISTEM_ABSENSI/KARYAWAN/KARYAWAN.html">📱 Aplikasi Karyawan<small>Absensi, Izin, Profile</small></a>
-      
-      <!-- Perbaikan path untuk Admin -->
       <a href="./SISTEM_ABSENSI/ADMIN/ADMIN.html">🛠️ Admin Dashboard<small>Kelola & Approval</small></a>
     </div>
   </div>
