@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Admin Absensi</title>
+    <style>
+        * { box-sizing: border-box; font-family: -apple-system, sans-serif; }
+        body { background: #e5e7eb; margin: 0; padding: 20px; }
+        .container { background: #fff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 100%; max-width: 800px; margin: 0 auto; }
+        h2 { text-align: center; color: #111827; margin-top: 0; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px; }
+        input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; }
+        button { width: 100%; padding: 12px; background: #059669; color: #fff; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        button:hover { background: #047857; }
+        #dashboard { display: none; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #d1d5db; padding: 10px; text-align: left; font-size: 14px; }
+        th { background: #f3f4f6; }
+        .btn-refresh { background: #3b82f6; width: auto; padding: 8px 16px; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div id="login-section">
+        <h2>🛠️ Administrator Login</h2>
+        <form id="adminLoginForm" onsubmit="handleAdminLogin(event)">
+            <div class="form-group">
+                <label>Username</label>
+                <input type="text" id="adminUser" required placeholder="Masukkan Username">
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="adminPass" required placeholder="Masukkan Password">
+            </div>
+            <button type="submit" id="btnAdminLogin">Masuk Dashboard</button>
+        </form>
+    </div>
+
+    <div id="dashboard">
+        <h2>Data Absensi Keseluruhan</h2>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <button onclick="loadSemuaAbsensi()" class="btn-refresh" id="btnRefresh">🔄 Refresh Data</button>
+            <button onclick="logoutAdmin()" style="background: #dc2626; width: auto; padding: 8px 16px;">Logout</button>
+        </div>
+        
+        <div style="overflow-x: auto;">
+            <table id="tabelAbsensi">
+                <thead>
+                    <tr>
+                        <th>NIP</th>
+                        <th>Nama Karyawan</th>
+                        <th>Tanggal</th>
+                        <th>Jam Masuk</th>
+                        <th>Jam Pulang</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="dataAbsensi">
+                    <tr><td colspan="6" style="text-align:center;">Belum ada data dimuat</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ==========================================================
+    // 🔴 UBAH URL INI DENGAN ALAMAT NGROK ANDA (Sama dengan Karyawan)
+    // ==========================================================
+    const SCRIPT_URL = 'https://a1b2-c3d4.ngrok-free.app/absensi/api.php';
+
+    function handleAdminLogin(event) {
+        event.preventDefault();
+        const user = document.getElementById('adminUser').value;
+        const pass = document.getElementById('adminPass').value;
+        const btn = document.getElementById('btnAdminLogin');
+        
+        btn.innerText = "Mengecek...";
+        btn.disabled = true;
+
+        fetch(SCRIPT_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'adminLogin', username: user, password: pass })
+        })
+        .then(res => res.json())
+        .then(data => {
+            btn.innerText = "Masuk Dashboard";
+            btn.disabled = false;
+            
+            if (data.success) {
+                document.getElementById('login-section').style.display = 'none';
+                document.getElementById('dashboard').style.display = 'block';
+                loadSemuaAbsensi(); // Otomatis tarik data absen saat berhasil login
+            } else {
+                alert(data.message);
+            }
+        })
+        .catch(err => {
+            alert("Gagal terhubung ke server lokal.");
+            btn.innerText = "Masuk Dashboard";
+            btn.disabled = false;
+        });
+    }
+
+    function loadSemuaAbsensi() {
+        const btn = document.getElementById('btnRefresh');
+        btn.innerText = "Memuat...";
+        
+        fetch(SCRIPT_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'getAllAbsensi', bulan: '' })
+        })
+        .then(res => res.json())
+        .then(data => {
+            btn.innerText = "🔄 Refresh Data";
+            
+            const tbody = document.getElementById('dataAbsensi');
+            tbody.innerHTML = ''; // Kosongkan tabel
+
+            if (data.success && data.data.length > 0) {
+                data.data.forEach(row => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${row.NIP}</td>
+                        <td>${row.Nama}</td>
+                        <td>${row.Tanggal}</td>
+                        <td>${row.Jam_Masuk || '-'}</td>
+                        <td>${row.Jam_Pulang || '-'}</td>
+                        <td><strong>${row.Status || '-'}</strong></td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } else {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Data absensi kosong</td></tr>';
+            }
+        })
+        .catch(err => {
+            btn.innerText = "🔄 Refresh Data";
+            alert("Gagal memuat data dari database MySQL.");
+        });
+    }
+
+    function logoutAdmin() {
+        document.getElementById('adminLoginForm').reset();
+        document.getElementById('dataAbsensi').innerHTML = '<tr><td colspan="6" style="text-align:center;">Belum ada data dimuat</td></tr>';
+        document.getElementById('dashboard').style.display = 'none';
+        document.getElementById('login-section').style.display = 'block';
+    }
+</script>
+
+</body>
+</html>
