@@ -180,6 +180,7 @@
 </head>
 <body>
 
+<!-- ================= LOGIN ================= -->
 <div id="screen-login">
   <div class="login-card">
     <h1>🛠️ Admin Dashboard</h1>
@@ -197,6 +198,7 @@
   </div>
 </div>
 
+<!-- ================= MAIN ================= -->
 <div id="screen-main" class="hidden">
   <div class="sidebar">
     <div class="brand">📍 <span class="full">Absensi Admin</span><small class="full">Sistem Absensi Karyawan</small></div>
@@ -220,6 +222,7 @@
 
     <div class="content">
 
+      <!-- ===================== DASHBOARD ===================== -->
       <div class="page-section active" id="page-dashboard">
         <div class="stat-grid">
           <div class="stat-card"><div class="num" id="stat-karyawan">-</div><div class="lbl">Total Karyawan</div></div>
@@ -251,6 +254,7 @@
         </div>
       </div>
 
+      <!-- ===================== DATA ABSENSI ===================== -->
       <div class="page-section" id="page-absensi">
         <div class="card">
           <div class="card-header">
@@ -277,6 +281,7 @@
         </div>
       </div>
 
+      <!-- ===================== PERFORMA (CHART) ===================== -->
       <div class="page-section" id="page-performa">
         <div class="card">
           <div class="card-header">
@@ -291,6 +296,7 @@
         </div>
       </div>
 
+      <!-- ===================== PENGAJUAN ===================== -->
       <div class="page-section" id="page-pengajuan">
         <div class="card">
           <div class="card-header">
@@ -319,6 +325,7 @@
         </div>
       </div>
 
+      <!-- ===================== KARYAWAN ===================== -->
       <div class="page-section" id="page-karyawan">
         <div class="card">
           <div class="card-header">
@@ -345,6 +352,7 @@
   </div>
 </div>
 
+<!-- ================= MODAL APPROVAL ================= -->
 <div class="modal-bg hidden" id="modal-approval">
   <div class="modal">
     <h3 id="modal-title">Approval Pengajuan</h3>
@@ -361,6 +369,7 @@
   </div>
 </div>
 
+<!-- ================= MODAL FOTO ================= -->
 <div class="modal-bg hidden" id="modal-foto">
   <div class="modal" style="width:360px;">
     <h3 id="modal-foto-title">Foto Absensi</h3>
@@ -375,7 +384,7 @@
 /* ============================================================
  * KONFIGURASI
  * ============================================================ */
-const GAS_URL = 'https://iguana-armchair-ranger.ngrok-free.dev/absensi/api.php';
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbziNdvspPuohkuZTV7HyvMcVLeyfcHqbGlgqhOYlEVSNGq3GcRvaukNRnOCk6UTZQUK/exec';
 
 /* ============================================================
  * STATE
