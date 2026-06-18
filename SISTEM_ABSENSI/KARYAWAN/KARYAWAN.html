@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aplikasi Absensi Karyawan</title>
+    <style>
+        * { box-sizing: border-box; font-family: -apple-system, sans-serif; }
+        body { background: #f3f4f6; margin: 0; padding: 20px; display: flex; justify-content: center; }
+        .container { background: #fff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
+        h2 { text-align: center; color: #1d4ed8; margin-top: 0; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px; }
+        input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; }
+        button { width: 100%; padding: 12px; background: #2563eb; color: #fff; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        button:hover { background: #1d4ed8; }
+        .btn-pulang { background: #dc2626; }
+        .btn-pulang:hover { background: #b91c1c; }
+        #dashboard { display: none; }
+        .profile-info { text-align: center; margin-bottom: 20px; padding: 10px; background: #eff6ff; border-radius: 8px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div id="login-section">
+        <h2>Karyawan Login</h2>
+        <form id="loginForm" onsubmit="handleLogin(event)">
+            <div class="form-group">
+                <label>NIP Karyawan</label>
+                <input type="text" id="nip" required placeholder="Masukkan NIP">
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="password" required placeholder="Masukkan Password">
+            </div>
+            <button type="submit" id="btnLogin">Masuk</button>
+        </form>
+    </div>
+
+    <div id="dashboard">
+        <h2>Dashboard Absensi</h2>
+        <div class="profile-info">
+            <h3 id="userName" style="margin:0;">-</h3>
+            <p id="userJabatan" style="margin:5px 0 0 0; color:#6b7280; font-size:14px;">-</p>
+        </div>
+        
+        <button onclick="handleAbsen('masuk')" id="btnMasuk">📍 Absen Masuk</button>
+        <button onclick="handleAbsen('pulang')" class="btn-pulang" id="btnPulang">🏠 Absen Pulang</button>
+        
+        <div style="margin-top: 20px; text-align: center;">
+            <button onclick="logout()" style="background: #6b7280;">Logout</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ==========================================================
+    // 🔴 UBAH URL INI DENGAN ALAMAT NGROK ANDA
+    // ==========================================================
+    const SCRIPT_URL = 'https://a1b2-c3d4.ngrok-free.app/absensi/api.php';
+
+    let userAktif = null; // Menyimpan data user yang login
+
+    function handleLogin(event) {
+        event.preventDefault();
+        const nip = document.getElementById('nip').value;
+        const password = document.getElementById('password').value;
+        const btn = document.getElementById('btnLogin');
+        
+        btn.innerText = "Mengecek data...";
+        btn.disabled = true;
+
+        fetch(SCRIPT_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'login', nip: nip, password: password })
+        })
+        .then(res => res.json())
+        .then(data => {
+            btn.innerText = "Masuk";
+            btn.disabled = false;
+            
+            if (data.success) {
+                userAktif = data.data; // Simpan data dari database
+                document.getElementById('login-section').style.display = 'none';
+                document.getElementById('dashboard').style.display = 'block';
+                document.getElementById('userName').innerText = userAktif.Nama_Lengkap;
+                document.getElementById('userJabatan').innerText = userAktif.Jabatan;
+            } else {
+                alert(data.message);
+            }
+        })
+        .catch(err => {
+            alert("Gagal terhubung ke server lokal. Pastikan Ngrok & XAMPP menyala.");
+            btn.innerText = "Masuk";
+            btn.disabled = false;
+        });
+    }
+
+    function handleAbsen(tipe) {
+        if (!userAktif) return alert("Silakan login terlebih dahulu!");
+
+        const btn = tipe === 'masuk' ? document.getElementById('btnMasuk') : document.getElementById('btnPulang');
+        btn.innerText = "Mengambil GPS...";
+        btn.disabled = true;
+
+        // Ambil Lokasi GPS Karyawan
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    kirimDataAbsen(tipe, lat, lng, btn);
+                },
+                (error) => {
+                    alert("Akses lokasi (GPS) wajib diaktifkan!");
+                    btn.innerText = tipe === 'masuk' ? "📍 Absen Masuk" : "🏠 Absen Pulang";
+                    btn.disabled = false;
+                },
+                { enableHighAccuracy: true }
+            );
+        } else {
+            alert("Browser Anda tidak mendukung fitur GPS.");
+        }
+    }
+
+    function kirimDataAbsen(tipe, lat, lng, btnElement) {
+        btnElement.innerText = "Menyimpan data...";
+
+        // Untuk uji coba ini, foto diset kosong. Jika Anda punya fitur kamera, ganti nilainya dengan base64
+        const payload = {
+            action: 'absen',
+            nip: userAktif.NIP,
+            type: tipe,
+            lat: lat,
+            lng: lng,
+            photoBase64: "" 
+        };
+
+        fetch(SCRIPT_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                alert(`${data.message}\nLokasi: ${data.data.lokasi}`);
+            } else {
+                alert("Gagal: " + data.message);
+            }
+            btnElement.innerText = tipe === 'masuk' ? "📍 Absen Masuk" : "🏠 Absen Pulang";
+            btnElement.disabled = false;
+        })
+        .catch(err => {
+            alert("Gagal mengirim data absen ke server.");
+            btnElement.disabled = false;
+        });
+    }
+
+    function logout() {
+        userAktif = null;
+        document.getElementById('loginForm').reset();
+        document.getElementById('dashboard').style.display = 'none';
+        document.getElementById('login-section').style.display = 'block';
+    }
+</script>
+
+</body>
+</html>
